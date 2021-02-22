@@ -4,6 +4,7 @@
 #include "serial.h"
 #include "main.h"
 
+
 // Really don't like this but for the life of me I couldn't get
 // any ready to go buffered serial methods to work.
 // Could have probably make a #define that overrides Serial.print

@@ -22,7 +22,11 @@
 Adafruit_NXPSensorFusion nxpfilter;
 #endif
 
+I2C i2c(I2C_SDA,I2C_SCL);
+
+
 static float raccx=0,raccy=0,raccz=0;
+static float racc[3], rmag[3], rgyr[3];
 static float rmagx=0,rmagy=0,rmagz=0;
 static float rgyrx=0,rgyry=0,rgyrz=0;  
 static float accx=0,accy=0,accz=0;
@@ -51,8 +55,10 @@ int sense_Init()
         return -1;
     }  
 
-    IMU.setGyroFS(2); // 1000dps gyro    
-    IMU.setGyroODR(2); // 50hz
+    //IMU.setContinuousMode();
+
+    //IMU.setGyroFS(2); // 1000dps gyro    
+    //IMU.setGyroODR(2); // 50hz
 
     // Increase Clock Speed, save some CPU due to blocking i2c
     Wire1.setClock(400000);  
@@ -232,8 +238,7 @@ void sense_Thread()
         }
     }                
 
-    // Get new data from sensors.. 
-    //  FIX MEE I2C is hogging 40% of processor just waiting!!! UGG Needs to be changed to non-blocking
+    // Get new data from sensors..     
     
     if(++counter == SENSEUPDATE) { 
         counter = 0;
@@ -242,9 +247,15 @@ void sense_Thread()
         float rotation[3];
         trkset.orientRotations(rotation);
 
+        if(IMU.getAllData(racc, rmag, rgyr) == 0) {
+            // Got all the IMU data
+            int a = 0;
+            a += racc[0];
+        }
+
         // Accelerometer
-        if(IMU.accelerationAvailable()) {
-            IMU.readRawAccel(raccx, raccy, raccz);            
+        /*if(IMU.accelerationAvailable()) {
+            IMU.readAcceleration(raccx, raccy, raccz);            
             raccx *= -1.0; // Flip X to make classic cartesian (+X Right, +Y Up, +Z Vert)
             trkset.accOffset(accxoff,accyoff,acczoff);
             
@@ -260,7 +271,7 @@ void sense_Thread()
 
         // Gyrometer
         if(IMU.gyroscopeAvailable()) {
-            IMU.readRawGyro(rgyrx,rgyry,rgyrz);
+            IMU.readGyroscope(rgyrx,rgyry,rgyrz);
             rgyrx *= -1.0; // Flip X to match other sensors
             trkset.gyroOffset(gyrxoff,gyryoff,gyrzoff);            
             gyrx = rgyrx - gyrxoff;
@@ -279,7 +290,7 @@ void sense_Thread()
 
         // Magnetometer
         if(IMU.magneticFieldAvailable()) {
-            IMU.readRawMagnet(rmagx,rmagy,rmagz);
+            IMU.readMagneticField(rmagx,rmagy,rmagz);
             // On first read set the min/max values to this reading
             // Get Offsets and Apply them
             trkset.magOffset(magxoff,magyoff,magzoff);              
@@ -301,6 +312,7 @@ void sense_Thread()
             rotate(tmpmag, rotation);
             magx = tmpmag[0]; magy = tmpmag[1]; magz = tmpmag[2];
         }
+        */
     }        
 
     // Update the settings
