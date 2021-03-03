@@ -57,7 +57,7 @@ int LSM9DS1Class::begin()
 {
 
   _wire->begin();
-  
+
 
   // reset
   writeRegister(LSM9DS1_ADDRESS, LSM9DS1_CTRL_REG8, 0x05);
@@ -85,7 +85,7 @@ int LSM9DS1Class::begin()
   writeRegister(LSM9DS1_ADDRESS_M, LSM9DS1_CTRL_REG3_M, 0x00); // Continuous conversion mode
 
   return 1;
-  
+
   readstate = ST_IDLE;
 }
 
@@ -116,7 +116,7 @@ void LSM9DS1Class::end()
   _wire->end();
 }
 
-void LSM9DS1Class::readComplete(int event) 
+void LSM9DS1Class::readComplete(int event)
 {
     mbed::I2C i2c(I2C_SDA1, I2C_SCL1);
     char address = 0;
@@ -149,7 +149,7 @@ void LSM9DS1Class::readComplete(int event)
         rxbuffer = (char*)GYRdata;
         rxlen = sizeof(GYRdata);
         readstate = ST_READGYR;
-    
+
     // Request Accel Data
     } else if (readstate == ST_READGYR) {
         address = LSM9DS1_ADDRESS;
@@ -167,20 +167,18 @@ void LSM9DS1Class::readComplete(int event)
     } else if (readstate == ST_READMAG) {
         readstate = ST_DONE;
     }
-    
+
     if(txlen > 0 || rxlen > 0) {
         int a;
         do {
-            
-            a = i2c.transfer(address << 1, txbuffer, txlen, rxbuffer, rxlen,
-                                         event_callback_t(this, &LSM9DS1Class::readComplete),
-                                         I2C_EVENT_ALL);
+
+
             } while (a != 0);
     }
 }
 
 // Must periodically call this.
-int LSM9DS1Class::getAllData(float (&acc)[3],float (&mag)[3],float (&gyr)[3]) 
+int LSM9DS1Class::getAllData(float (&acc)[3],float (&mag)[3],float (&gyr)[3])
 {
     // Begin the read
     if(readstate == ST_IDLE) {
@@ -192,13 +190,13 @@ int LSM9DS1Class::getAllData(float (&acc)[3],float (&mag)[3],float (&gyr)[3])
         memcpy(acc,ACCdata,sizeof(acc));
         memcpy(gyr,GYRdata,sizeof(gyr));
         memcpy(mag,MAGdata,sizeof(mag));
-        
+
         // Start next read
         readstate = ST_IDLE;
         readComplete();
         return 0; // Got All Data
     } else {
-        // Don't get stuck.. 
+        // Don't get stuck..
         if(std::chrono::duration_cast<std::chrono::milliseconds>(watch.elapsed_time()).count() > 1000) {
             readstate = ST_IDLE;
             watch.reset();
@@ -209,7 +207,7 @@ int LSM9DS1Class::getAllData(float (&acc)[3],float (&mag)[3],float (&gyr)[3])
 }
 
 int LSM9DS1Class::readAcceleration(float& x, float& y, float& z)
-{    
+{
   int16_t data[3];
 
   if (!readRegisters(LSM9DS1_ADDRESS, LSM9DS1_OUT_X_XL, (uint8_t*)data, sizeof(data))) {
